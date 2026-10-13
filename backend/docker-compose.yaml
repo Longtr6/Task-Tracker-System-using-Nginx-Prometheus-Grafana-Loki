@@ -1,0 +1,47 @@
+name: task_tracker_dev
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: task_tracker_dev_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: task_admin
+      POSTGRES_PASSWORD: SuperSecretPass123
+      POSTGRES_DB: task_tracker_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - task_tracker_dev_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: task_tracker_dev_backend
+    restart: always
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://task_admin:SuperSecretPass123@db:5432/task_tracker_db
+      - SECRET_KEY=0b9abee52affbdec629a6c224d2f4369b13c88bbc2ae8328d0fc41502ab50f67
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=120
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m app.seed &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+volumes:
+  task_tracker_dev_postgres_data:
+    name: task_tracker_dev_postgres_data
