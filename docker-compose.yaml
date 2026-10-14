@@ -78,9 +78,94 @@ services:
     networks:
       - task_network
 
+  # ==========================================
+  # CÁC SERVICE GIÁM SÁT (COMMIT 2) - THÊM MỚI
+  # ==========================================
+
+  # 5. Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: task_tracker_prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - task_network
+
+  # 6. Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: task_tracker_grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - task_network
+
+  # 7. cAdvisor (Giám sát tài nguyên container Docker)
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: task_tracker_cadvisor
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - task_network
+
+  # 8. PostgreSQL Exporter (Giám sát database)
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: task_tracker_postgres_exporter
+    restart: always
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable
+    ports:
+      - "9187:9187"
+    depends_on:
+      - db
+    networks:
+      - task_network
+
+  # 9. Nginx Prometheus Exporter
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: task_tracker_nginx_exporter
+    restart: always
+    ports:
+      - "9113:9113"
+    command:
+      - '-nginx.scrape-uri=http://nginx/stub_status'
+    depends_on:
+      - nginx
+    networks:
+      - task_network
+
 volumes:
   postgres_data:
     name: task_tracker_postgres_data
+  prometheus_data:
+    name: task_tracker_prometheus_data
+  grafana_data:
+    name: task_tracker_grafana_data
 
 networks:
   task_network:
