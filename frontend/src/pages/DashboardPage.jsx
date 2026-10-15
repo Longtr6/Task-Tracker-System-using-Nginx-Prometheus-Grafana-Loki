@@ -73,7 +73,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Khu vực công việc gần đây */}
         <div className="card">
-          <h2 className="text-h3 mb-4">Công Việc Gần Đây</h2>
+          <h2 className="text-h3 mb-4" style={{ color: '#000000' }}>Công Việc Gần Đây</h2>
           {tasks.length === 0 ? (
             <EmptyState message="Chưa có công việc nào." icon="📋" />
           ) : (
@@ -95,7 +95,7 @@ export default function DashboardPage() {
 
         {/* Khu vực nhật ký mới nhất */}
         <div className="card">
-          <h2 className="text-h3 mb-4">Nhật Ký Mới Nhất</h2>
+          <h2 className="text-h3 mb-4" style={{ color: '#000000' }}>Nhật Ký Mới Nhất</h2>
           {logs.length === 0 ? (
             <EmptyState message="Chưa có nhật ký nào." icon="📜" />
           ) : (

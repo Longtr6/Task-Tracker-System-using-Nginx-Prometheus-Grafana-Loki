@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Cố định thẳng trực tiếp vào cổng 8001 của backend
-const BASE_URL = 'http://localhost:8001';
+const BASE_URL = '';
 
 const api = axios.create({
   baseURL: BASE_URL,
