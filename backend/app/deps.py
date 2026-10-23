@@ -7,7 +7,7 @@ from app import models, schemas
 from app.config import settings
 from app.database import get_db
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
 def get_current_user(

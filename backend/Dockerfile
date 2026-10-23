@@ -14,12 +14,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# -------------------------------------------------------------------------
+# [THAY ĐỔI / BỔ SUNG MỚI]: Tạo System User và Group riêng (Non-root user)
+# Mục đích: Ngăn chặn kẻ tấn công chiếm quyền cao nhất (root) nếu container bị thâm nhập.
+# -------------------------------------------------------------------------
+RUN addgroup --system appgroup && adduser --system --no-create-home --ingroup appgroup appuser
+
 # 5. Copy file requirements và cài đặt thư viện Python (tối ưu cache của Docker)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 6. Copy toàn bộ mã nguồn của dự án vào container
-COPY . .
+# -------------------------------------------------------------------------
+# [THAY ĐỔI]: Copy toàn bộ mã nguồn VÀ phân quyền sở hữu cho appuser
+# Sử dụng `--chown=appuser:appgroup` để user thường có quyền đọc/thực thi mã nguồn.
+# -------------------------------------------------------------------------
+COPY --chown=appuser:appgroup . .
+
+# -------------------------------------------------------------------------
+# [THAY ĐỔI / BỔ SUNG MỚI]: Chuyển sang sử dụng user thường (Non-root)
+# Từ dòng này trở đi, mọi tiến trình và ứng dụng chạy trong container sẽ 
+# chạy dưới quyền của `appuser` thay vì `root`.
+# -------------------------------------------------------------------------
+USER appuser
 
 # 7. Khai báo port container sẽ lắng nghe
 EXPOSE 8000

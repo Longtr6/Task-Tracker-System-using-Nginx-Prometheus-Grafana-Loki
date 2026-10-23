@@ -1,7 +1,8 @@
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import audit_logs, auth, comments, projects, tasks
+from app.routers import audit_logs, auth, comments, projects, tasks, admin
 
 app = FastAPI(title="Task Tracker API", version="1.0.0")
 
@@ -46,6 +47,13 @@ app.include_router(
     audit_logs.router,
     prefix="/api/v1/audit-logs",
     tags=["Audit"],
+)
+
+# Admin API
+app.include_router(
+    admin.router,
+    prefix="/api/v1/admin",
+    tags=["Admin"],
 )
 
 

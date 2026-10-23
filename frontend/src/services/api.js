@@ -1,7 +1,9 @@
+
 import axios from 'axios';
 
-// Cố định thẳng trực tiếp vào cổng 8001 của backend
-const BASE_URL = 'http://localhost:8001';
+// Gọi API thông qua HTTPS và Nginx reverse proxy.
+// Không gọi trực tiếp cổng Backend từ trình duyệt.
+const BASE_URL = '';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -10,24 +12,28 @@ const api = axios.create({
   },
 });
 
-// Request Interceptor: Tự động đính kèm JWT Bearer Token nếu có
+// Tự động đính kèm JWT Bearer Token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Chuẩn hóa dữ liệu lỗi từ Backend
+// Chuẩn hóa lỗi từ Backend
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    let normalizedError = {
-      status: error.response?.status || 500,
+    const status = error.response?.status;
+
+    const normalizedError = {
+      status: status || 500,
       message: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại mạng.',
       details: null,
     };
@@ -43,11 +49,7 @@ api.interceptors.response.use(
       } else if (data?.message) {
         normalizedError.message = data.message;
       } else {
-        normalizedError.message = `Lỗi hệ thống (${error.response.status})`;
-      }
-
-      if (error.response.status === 401) {
-        localStorage.removeItem('access_token');
+        normalizedError.message = `Lỗi hệ thống (${status})`;
       }
     }
 

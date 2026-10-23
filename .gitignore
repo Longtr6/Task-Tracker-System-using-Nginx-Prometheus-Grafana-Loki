@@ -35,3 +35,4 @@ htmlcov/
 
 # Local development artifacts
 project-tree.txt
+nginx/certs/nginx.key
